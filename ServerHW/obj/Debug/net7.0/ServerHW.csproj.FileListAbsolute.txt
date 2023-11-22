@@ -1,0 +1,14 @@
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.GeneratedMSBuildEditorConfig.editorconfig
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.AssemblyInfoInputs.cache
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.AssemblyInfo.cs
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.csproj.CoreCompileInputs.cache
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\bin\Debug\net7.0\ServerHW.exe
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\bin\Debug\net7.0\ServerHW.deps.json
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\bin\Debug\net7.0\ServerHW.runtimeconfig.json
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\bin\Debug\net7.0\ServerHW.dll
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\bin\Debug\net7.0\ServerHW.pdb
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.dll
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\refint\ServerHW.dll
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.pdb
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ServerHW.genruntimeconfig.cache
+D:\2. ШАГ Уроки\3. Пары\2. 2 семестр ООП\46. 18.11.23\HW\ServerHW\ServerHW\obj\Debug\net7.0\ref\ServerHW.dll
