@@ -13,11 +13,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\2. ШАГ Уроки\\3. Пары\\2. 2 семестр ООП\\46. 18.11.23\\HW\\ServerHW\\ServerHW\\ServerHW.csproj",
+      "projectUniqueName": "D:\\2. ШАГ Уроки\\3. Пары\\2. 2 семестр ООП\\47. 25.11.23\\HW\\ServerHW\\ServerHW\\ServerHW.csproj",
       "projectName": "ServerHW",
-      "projectPath": "D:\\2. ШАГ Уроки\\3. Пары\\2. 2 семестр ООП\\46. 18.11.23\\HW\\ServerHW\\ServerHW\\ServerHW.csproj",
+      "projectPath": "D:\\2. ШАГ Уроки\\3. Пары\\2. 2 семестр ООП\\47. 25.11.23\\HW\\ServerHW\\ServerHW\\ServerHW.csproj",
       "packagesPath": "C:\\Users\\Ирина\\.nuget\\packages\\",
-      "outputPath": "D:\\2. ШАГ Уроки\\3. Пары\\2. 2 семестр ООП\\46. 18.11.23\\HW\\ServerHW\\ServerHW\\obj\\",
+      "outputPath": "D:\\2. ШАГ Уроки\\3. Пары\\2. 2 семестр ООП\\47. 25.11.23\\HW\\ServerHW\\ServerHW\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Ирина\\AppData\\Roaming\\NuGet\\NuGet.Config",
