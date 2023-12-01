@@ -1,21 +1,27 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Linq;
 
 namespace Server
 {
+    internal class ClientInfo
+    {
+        public TcpClient Client { get; set; }
+        public string Login { get; set; }
+        public List<string> ClientQuotes { get; set; }
+    }
+
     internal class Program
     {
+        private static List<ClientInfo> connectedClients = new List<ClientInfo>();
         private static Dictionary<string, string> clientsIdentity;
-        private static ConcurrentDictionary<TcpClient, List<string>> clientsQuotes = new ConcurrentDictionary<TcpClient, List<string>>();
+        //private static ConcurrentDictionary<TcpClient, List<string>> clientsQuotes = new ConcurrentDictionary<TcpClient, List<string>>();
         private static readonly object lockObject = new object();
         const int port = 8080;
         static IPEndPoint ipEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), port);
@@ -23,14 +29,14 @@ namespace Server
         private static int currentClientCount = 0;
         private static readonly object countLockObject = new object();
         static int maxClientCount = 3;
-
+        static StreamWriter logWriter;
         static async Task Main(string[] args)
         {
             listener = new TcpListener(ipEndPoint);
             listener.Start();
             InitializeClients();
             Console.WriteLine("Сервер запущен!");
-            
+            logWriter = new StreamWriter("log.txt", true);
             try
             {
                 while (true)
@@ -41,7 +47,7 @@ namespace Server
                     {
                         if (CanAcceptClient())
                         {
-                            Log($"Присоединился клиент: {client.Client.RemoteEndPoint}, {DateTime.Now}");
+                            Log($"Присоединился клиент {connectedClients.FirstOrDefault(info => info.Client == client).Login}: {client.Client.RemoteEndPoint}, {DateTime.Now}");
                             await WriteMessageAsync(client, "Hello");
 
                             IncrementClientCount();
@@ -50,6 +56,7 @@ namespace Server
                         }
                         else
                         {
+                            connectedClients.RemoveAt(connectedClients.Count - 1);
                             await WriteMessageAsync(client, "Later");
                             Console.WriteLine("Достигнуто максимальное количество клиентов. Отклонено подключение нового клиента.");
                             client.Close();
@@ -73,26 +80,24 @@ namespace Server
             };
         }
 
-        private static bool ValidateClient(string login, string pasword)
+        private static bool ValidateClient(string login, string password)
         {
             if (clientsIdentity.TryGetValue(login, out var currentPassword))
             {
-                return pasword == currentPassword;
+                return password == currentPassword;
             }
             return false;
         }
 
-        private static async Task< bool> TakeClientCredentials(TcpClient client)
+        private static async Task<bool> TakeClientCredentials(TcpClient client)
         {
             try
             {
                 NetworkStream stream = client.GetStream();
-                byte[] buffer = new byte[1024]; 
+                byte[] buffer = new byte[1024];
                 int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
                 string clientCredentials = Encoding.Unicode.GetString(buffer, 0, bytesRead);
-               //Cо STREAMREADER работать не хочет!
-                //using StreamReader reader = new StreamReader(stream);
-                //string clientCredentials = await reader.ReadLineAsync();
+
                 if (clientCredentials != null)
                 {
                     string[] credentialsArray = clientCredentials.Split(',');
@@ -100,6 +105,8 @@ namespace Server
                     string password = credentialsArray[1];
                     if (ValidateClient(login, password))
                     {
+                        ClientInfo clientInfo = new ClientInfo() { Client = client, Login = login };
+                        connectedClients.Add(clientInfo);
                         return true;
                     }
                     else
@@ -112,18 +119,16 @@ namespace Server
                     }
                 }
                 else return false;
-                
+
             }
             catch (Exception ex)
             {
-                // Обработка возможных исключений
                 Log($"Ошибка при обработке учетных данных клиента: {ex.Message}");
                 return false;
             }
-            
+
         }
 
-        // Метод для проверки, можно ли принять нового клиента
         private static bool CanAcceptClient()
         {
             lock (countLockObject)
@@ -132,7 +137,6 @@ namespace Server
             }
         }
 
-        // Метод для увеличения счетчика активных клиентов
         private static void IncrementClientCount()
         {
             lock (countLockObject)
@@ -141,7 +145,6 @@ namespace Server
             }
         }
 
-        // Метод для уменьшения счетчика активных клиентов
         private static void DecrementClientCount()
         {
             lock (countLockObject)
@@ -150,27 +153,28 @@ namespace Server
             }
         }
 
-        public static void InitializeQuotes(TcpClient client)
+        public static void InitializeQuotes(ClientInfo clientInfo)
         {
             lock (lockObject)
             {
-                clientsQuotes.TryAdd(client, new List<string>
+                clientInfo.ClientQuotes = new List<string>
                     {
                         "«Цели никогда не должны быть простыми. Они должны быть неудобными, чтобы заставить вас работать», — Майкл Фелпс",
-                "«Возраст — это всего лишь ограничение, которое вы кладёте себе в голову», — Джеки Джойнер-Керси",
-                "«Не бойтесь неудач, потому что это ваш путь к успеху», — Леброн Джеймс",
-                "«Тело может многое выдержать. Вам нужно только убедить своё сознание в этом», — Эндрю Мерфи",
-                "«Секрет жизни в том, чтобы семь раз упасть, но восемь раз подняться», — Пауло Коэльо",
-                "«Неудача — это просто возможность начать снова, но уже более мудро», — Генри Форд",
-                "«Величайшая слава в жизни заключается не в том, чтобы никогда не падать, а в том, чтобы подниматься каждый раз, когда мы падаем», — Ральф Уолдо Эмерсон",
-                "«Успех — не окончателен, провал — не фатален: имеет значение лишь смелость продолжить путь», — Уинстон Черчилль",
-                "«Вчера я был умным, и поэтому я хотел изменить мир. Сегодня я стал мудрым, и поэтому я меняю себя», — Джалаладдин Руми",
-                " «Если мы не меняемся, мы не развиваемся. А если не развиваемся, то и не живём по-настоящему», — Гейл Шихи",
-                "«Нам не дано вернуть вчерашний день, но то, что будет завтра, зависит от нас», — Линдон Джонсон, 36-й президент США",
-                "«Никогда не поздно или — в моём случае — никогда не рано стать тем, кем ты хочешь стать. Временных рамок нет, можешь начать когда угодно. Можешь измениться или остаться прежним — правил не существует», — Фрэнсис Скотт Фицджеральд"
-                    });
+                        "«Возраст — это всего лишь ограничение, которое вы кладёте себе в голову», — Джеки Джойнер-Керси",
+                        "«Не бойтесь неудач, потому что это ваш путь к успеху», — Леброн Джеймс",
+                        "«Тело может многое выдержать. Вам нужно только убедить своё сознание в этом», — Эндрю Мерфи",
+                        "«Секрет жизни в том, чтобы семь раз упасть, но восемь раз подняться», — Пауло Коэльо",
+                        "«Неудача — это просто возможность начать снова, но уже более мудро», — Генри Форд",
+                        "«Величайшая слава в жизни заключается не в том, чтобы никогда не падать, а в том, чтобы подниматься каждый раз, когда мы падаем», — Ральф Уолдо Эмерсон",
+                        "«Успех — не окончателен, провал — не фатален: имеет значение лишь смелость продолжить путь», — Уинстон Черчилль",
+                        "«Вчера я был умным, и поэтому я хотел изменить мир. Сегодня я стал мудрым, и поэтому я меняю себя», — Джалаладдин Руми",
+                        " «Если мы не меняемся, мы не развиваемся. А если не развиваемся, то и не живём по-настоящему», — Гейл Шихи",
+                        "«Нам не дано вернуть вчерашний день, но то, что будет завтра, зависит от нас», — Линдон Джонсон, 36-й президент США",
+                        "«Никогда не поздно или — в моём случае — никогда не рано стать тем, кем ты хочешь стать. Временных рамок нет, можешь начать когда угодно. Можешь измениться или остаться прежним — правил не существует», — Фрэнсис Скотт Фицджеральд"
+                    };
             }
         }
+
         public static async Task OneClientProcess(TcpClient client)
         {
             NetworkStream stream = null;
@@ -178,8 +182,8 @@ namespace Server
             {
                 stream = client.GetStream();
 
-
-                InitializeQuotes(client);
+                ClientInfo clientInfo = connectedClients.FirstOrDefault(info => info.Client == client);
+                InitializeQuotes(clientInfo);
 
                 byte[] data = new byte[64];
                 while (client.Connected)
@@ -193,26 +197,27 @@ namespace Server
                     } while (stream.DataAvailable);
 
                     string message = builder.ToString();
-                    Console.WriteLine($"Клиент: {message}");
+                    Console.WriteLine($"Клиент {clientInfo.Login}: {message}");
 
                     if (message.ToLower() == "bye")
                     {
-                        Log($"Клиент {client.Client.RemoteEndPoint} отключился в: {DateTime.Now}");
+                        Log($"Клиент {connectedClients.FirstOrDefault(info => info.Client == client).Login}: {client.Client.RemoteEndPoint} отключился в: {DateTime.Now}");
                         DecrementClientCount();
                         break;
                     }
 
-                    string response = GetComputerResponse(client);
+                    string response = GetComputerResponse(clientInfo);
                     data = Encoding.Unicode.GetBytes(response);
                     await stream.WriteAsync(data, 0, data.Length);
 
-                    Log($"Цитата: {response}");
+                    Log($"Цитата для клиента {clientInfo.Login}: {response}");
 
                     if (response == "bye")
                     {
                         lock (lockObject)
                         {
-                            clientsQuotes.TryRemove(client, out _);
+                            //clientsQuotes.TryRemove(client, out _);
+                            connectedClients.RemoveAll(info => info.Client == client);
                         }
                         Console.WriteLine("Соединение разорвано сервером из-за окончания цитат и направления сообщения \"bye\"");
                         Log($"Клиент {client.Client.RemoteEndPoint} отключился в: {DateTime.Now}");
@@ -225,9 +230,6 @@ namespace Server
                         break;
                     }
                 }
-
-
-
             }
             catch (ObjectDisposedException)
             {
@@ -239,10 +241,10 @@ namespace Server
             }
             finally
             {
-                lock (lockObject)
-                {
-                    clientsQuotes.TryRemove(client, out _);
-                }
+                //lock (lockObject)
+                //{
+                //    clientsQuotes.TryRemove(client, out _);
+                //}
 
                 if (client != null && client.Connected)
                 {
@@ -251,16 +253,16 @@ namespace Server
             }
         }
 
-        public static string GetComputerResponse(TcpClient client)
+        public static string GetComputerResponse(ClientInfo clientInfo)
         {
             lock (lockObject)
             {
-                if (clientsQuotes.TryGetValue(client, out var responses) && responses.Any())
+                if (clientInfo.ClientQuotes != null && clientInfo.ClientQuotes.Any())
                 {
-                    Random random = new Random();
-                    int index = random.Next(responses.Count);
-                    string quote = responses[index];
-                    responses.RemoveAt(index);
+                    Random random= new Random();
+                    int index = random.Next(clientInfo.ClientQuotes.Count);
+                    string quote = clientInfo.ClientQuotes[index];
+                    clientInfo.ClientQuotes.RemoveAt(index);
 
                     return quote;
                 }
@@ -276,9 +278,11 @@ namespace Server
             lock (lockObject)
             {
                 Console.WriteLine(message);
-                // логируйте в файл или другие места по необходимости
+                logWriter.WriteLine(message);
+                logWriter.Flush();
             }
         }
+
         public static async Task WriteMessageAsync(TcpClient client, string message)
         {
             NetworkStream stream = client.GetStream();
